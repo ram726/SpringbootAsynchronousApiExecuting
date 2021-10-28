@@ -1,5 +1,7 @@
 package com.example.SpringbootAsyncApiCall.AsyncApiCall;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -10,11 +12,17 @@ import java.util.stream.Collectors;
 @Service
 public class AsyncApiService
 {
-    private static RestTemplate restTemplate = new RestTemplate();
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
 
     public CompletableFuture<List<Object>> loadAllApiAddress(List<String> apiAddress)
     {
-        List collect = (List) apiAddress
+        List collect =apiAddress
                 .stream()
                 .map(site -> CompletableFuture.supplyAsync(() -> downloadContentOfApi(site)))
                 .collect(Collectors.toList());
@@ -24,7 +32,7 @@ public class AsyncApiService
     }
 
 
-    private static <T> CompletableFuture<List<Object>> sequence(List<CompletableFuture<Object>> futures) {
+    private <T> CompletableFuture<List<Object>> sequence(List<CompletableFuture<Object>> futures) {
         CompletableFuture<Void> allDoneFuture =
                 CompletableFuture.allOf(futures.toArray(new CompletableFuture[futures.size()]));
         return allDoneFuture.thenApply(v ->
